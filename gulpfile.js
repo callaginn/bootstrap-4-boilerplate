@@ -1,8 +1,5 @@
-/**
- * Dependencies
- */
-const { series, parallel, watch, src, dest } = require('gulp');
-const sass = require('gulp-sass');
+const gulp = require('gulp');
+const sass = require('gulp-sass')(require('sass'));
 const cleanCSS = require('gulp-clean-css');
 const uglify = require('gulp-uglify');
 const autoprefixer = require('gulp-autoprefixer');
@@ -14,14 +11,10 @@ const browserSync = require('browser-sync').create();
 const browserify = require('browserify');
 const notifier = require('node-notifier');
 
-/**
- * Main config where you can define paths and browserSync settings
- * */
+// Main config for paths and browserSync settings
 const config = {};
 
-/** 
- * Source and distribition files folders 
- * */
+// Source and distribition folders
 config.paths = {
     src: {
         scss: 'src/scss',
@@ -34,12 +27,12 @@ config.paths = {
     }
 }
 
-/** 
- * BrowserSync settings
- * 
- * uncomment "proxy" option and comment out "server" one
- * if you're using a local server
- * */
+
+/*/ ============================================================================
+    BROWSERSYNC SETTINGS
+    Uncomment "proxy" and comment out "server" if you're using a local server
+============================================================================ /*/
+
 config.browserSync = {
     // proxy: 'localhost:8000'
     server: { baseDir: "./" },
@@ -50,78 +43,90 @@ config.browserSync = {
     ]
 };
 
-/**
- * ------------------------------------------
- * ------------>>> Gulp tasks <<<------------
- * ------------------------------------------
- */
-
-const handleError = (err, title) => {
-    console.log(err);
-
-    notifier.notify({
-        title,
-        message: err.message,
-        sound: 'Basso'
-    });
+config.sass = {
+    outputStyle: "expanded",
+    includePaths: [
+        "./node_modules/bootstrap/scss",
+        "./node_modules"
+    ],
 }
 
+/*/ ============================================================================
+    GULP TASKS
+============================================================================ /*/
+
+function alert() {
+    function sendMessage(title, message, sound) {
+        notifier.notify({
+            title,
+            message: message,
+            sound: sound
+        });
+    };
+
+    return {
+        success: (title, message) => {
+            sendMessage(title, message)
+        },
+        error: (title, err) => {
+            sendMessage(title, message, 'Basso')
+        }
+    };
+}
+
+var alert = alert();
+
 const compileSCSS = () => {
-    return src(`${config.paths.src.scss}/styles.scss`)
-        .pipe(sass().on('error', err => handleError(err, 'SCSS Compile Error')))
+    return gulp.src(`${config.paths.src.scss}/styles.scss`)
+        .pipe(sass(config.sass).on('error', err => alert.error('SCSS Compile Error', err.message)))
         .pipe(autoprefixer())
-        .pipe(cleanCSS({ compatibility: '*' }))
-        .pipe(rename({ suffix: '.min' }))
-        .pipe(dest(config.paths.dist.css))
+        .pipe(cleanCSS({compatibility: '*'}))
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest(config.paths.dist.css))
+        .pipe(rename(path => {
+            alert.success("SCSS Compiled", path.basename + path.extname)
+        }))
 }
 
 const compileJS = () => {
-    return src(`${config.paths.src.js}/*.js`, { read: false })
+    return gulp.src(`${config.paths.src.js}/*.js`, { read: false })
         .pipe(tap(file => {
             file.contents = browserify(file.path, { debug: true })
                 .transform('babelify', { presets: ['@babel/preset-env'] })
                 .bundle();
         }))
         .pipe(buffer())
-        .pipe(uglify().on('error', err => handleError(err, 'JS Compile Error')))
+        .pipe(uglify().on('error', err => alert.error('JS Compile Error', err.message)))
         .pipe(rename({ suffix: '.min' }))
-        .pipe(dest(config.paths.dist.js));
+        .pipe(gulp.dest(config.paths.dist.js));
 }
 
 const optimizeImages = () => {
-    return src(`${config.paths.dist.img}/**/*`)
+    return gulp.src(`${config.paths.dist.img}/**/*`)
         .pipe(image())
-        .pipe(dest(config.paths.dist.img));
+        .pipe(gulp.dest(config.paths.dist.img));
 }
 
 const liveReload = () => {
     browserSync.init(config.browserSync)
 }
 
-/**
- * Watch files for changes
- */
+// Watch files for changes
 const watchForChanges = () => {
-    watch(`${config.paths.src.js}/**/*.js`, compileJS)
-    watch(`${config.paths.src.scss}/**/*.scss`, compileSCSS)
+    gulp.watch(`${config.paths.src.js}/**/*.js`, compileJS)
+    gulp.watch(`${config.paths.src.scss}/**/*.scss`, compileSCSS)
 };
 
-/**
- * Compile sources + watch for changes
- * 2 versions with/without live reload
- */
-const compileWatch = series(compileSCSS, compileJS, watchForChanges);
-const compileWatchReload = series(compileSCSS, compileJS, parallel(watchForChanges, liveReload));
+// Compile sources + watch for changes
+// 2 versions with/without live reload
+const compileWatch = gulp.series(compileSCSS, compileJS, watchForChanges);
+const compileWatchReload = gulp.series(compileSCSS, compileJS, gulp.parallel(watchForChanges, liveReload));
 
-/**
- * Build project for production (compile JS ans SCSS + optimize images)
- */
-const build = series(compileSCSS, compileJS, optimizeImages);
+// Build project for production (compile JS ans SCSS + optimize images)
+const build = gulp.series(compileSCSS, compileJS, optimizeImages);
 
-/**
- * Gulp tasks you can use in terminal by typing gulp + task name
- * For example: gulp optimizeImages
- */
+// Gulp tasks you can use in terminal by typing gulp + task name
+// For example: gulp optimizeImages
 exports.compileSCSS = compileSCSS;
 exports.compileJS = compileJS;
 exports.optimizeImages = optimizeImages;

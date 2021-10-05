@@ -11,24 +11,27 @@
     "start-no-reload": "gulp devNoReload",
     "build": "gulp build"
   },
-  "devDependencies": {
-    "@babel/cli": "^7.7.4",
-    "@babel/core": "^7.7.4",
-    "@babel/preset-env": "^7.7.4",
+  "dependencies": {
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.6",
     "babelify": "^10.0.0",
-    "bootstrap": "^4.4.1",
-    "browser-sync": "^2.26.7",
-    "browserify": "^16.5.0",
+    "bootstrap": "^4.6.0",
+    "browser-sync": "^2.27.5",
+    "browserify": "^17.0.0",
     "gulp": "^4.0.2",
-    "gulp-autoprefixer": "^5.0.0",
+    "gulp-autoprefixer": "^8.0.0",
     "gulp-buffer": "0.0.2",
-    "gulp-clean-css": "^3.9.4",
-    "gulp-image": "^5.1.0",
-    "gulp-rename": "^1.4.0",
-    "gulp-sass": "^4.0.2",
-    "gulp-tap": "^1.0.1",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-image": "^6.2.1",
+    "gulp-plumber": "^1.2.1",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass": "^5.0.0",
+    "gulp-tap": "^2.0.0",
     "gulp-uglify": "^3.0.2",
-    "node-notifier": "^5.4.3",
-    "prettier": "^1.19.1"
+    "node-notifier": "^10.0.0",
+    "path": "^0.12.7",
+    "prettier": "^2.4.1",
+    "sass": "^1.32.13"
   }
 }

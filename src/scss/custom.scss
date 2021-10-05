@@ -1,1 +1,16 @@
-$body-bg: #f3f3f3;
+$body-bg: black;
+$body-color: white;
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+h1, .h1 {
+    @extend .display-1;
+}
